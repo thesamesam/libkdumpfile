@@ -865,6 +865,12 @@ INTERNAL_DECL(kdump_status, create_cpu_regs,
 	      (kdump_ctx_t *ctx, unsigned cpu,
 	       struct derived_attr_def *def, unsigned ndef));
 
+INTERNAL_DECL(kdump_status, init_qemu_cpustate,
+	      (kdump_ctx_t *ctx, unsigned cpu, const void *data, size_t size));
+INTERNAL_DECL(kdump_status, create_qemu_cpu_regs,
+	      (kdump_ctx_t *ctx, unsigned cpu,
+	       struct derived_attr_def *def, unsigned ndef));
+
 INTERNAL_DECL(kdump_status, init_xen_cpu_prstatus,
 	      (kdump_ctx_t *ctx, unsigned cpu, const void *data, size_t size));
 INTERNAL_DECL(kdump_status, create_xen_cpu_regs,

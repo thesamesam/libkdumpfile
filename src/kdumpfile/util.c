@@ -987,6 +987,26 @@ init_cpu_prstatus(kdump_ctx_t *ctx, unsigned cpu,
 	return init_cpu_blob_attr(ctx, cpu, data, size, &prstatus_tmpl);
 }
 
+/**  QEMU_CPUSTATE blob attribute template. */
+static const struct attr_template qemu_cpustate_tmpl = {
+	.key = "QEMU_CPUSTATE",
+	.type = KDUMP_BLOB,
+};
+
+/**  Initialize the QEMU_CPUSTATE attribute for a CPU
+ * @param ctx   Dump object.
+ * @param cpu   CPU number.
+ * @param data  QEMUCPUState raw binary data.
+ * @param size  Size of the QEMUCPUState data in bytes.
+ * @returns     Error status.
+ */
+kdump_status
+init_qemu_cpustate(kdump_ctx_t *ctx, unsigned cpu,
+		   const void *data, size_t size)
+{
+	return init_cpu_blob_attr(ctx, cpu, data, size, &qemu_cpustate_tmpl);
+}
+
 /**  XEN_PRSTATUS blob attribute template. */
 static const struct attr_template xen_prstatus_tmpl = {
 	.key = "XEN_PRSTATUS",
@@ -1232,6 +1252,61 @@ create_cpu_regs(kdump_ctx_t *ctx, unsigned cpu,
 	status = cpu_regs_dir(ctx, cpu, &dir);
 	while (status == KDUMP_OK && ndef--) {
 		def->tmpl.ops = &prstatus_reg_ops;
+		status = create_derived_attr(ctx, dir, def++);
+	}
+
+	return status;
+}
+
+/**  Get register value from the corresponding QEMU_CPUSTATE attribute.
+ * @param ctx   Dump object.
+ * @param attr  Register value attribute.
+ * @returns     Error status.
+ */
+static kdump_status
+qemu_cpustate_reg_revalidate(kdump_ctx_t *ctx, struct attr_data *attr)
+{
+	return derived_attr_revalidate(ctx, attr, &qemu_cpustate_tmpl);
+}
+
+/**  Update the QEMU_CPUSTATE attribute after setting the register value.
+ * @param ctx   Dump object.
+ * @param attr  Register value attribute.
+ * @returns     Error status.
+ */
+static kdump_status
+qemu_cpustate_reg_update(kdump_ctx_t *ctx, struct attr_data *attr)
+{
+	return derived_attr_update(ctx, attr, &qemu_cpustate_tmpl);
+}
+
+/**  Create a set of CPU register attributes.
+ * @param ctx   Dump object.
+ * @param cpu   CPU number.
+ * @param def   Register definitions (array).
+ * @param ndef  Number of entries in the @c def array.
+ * @returns     Error status.
+ *
+ * Use this function to create register attributes under
+ * cpu.<num>.reg.  The values are taken from the corresponding
+ * cpu.<num>.QEMU_CPUSTATE blob attribute, using offsets and sizes
+ * from the definition array.
+ */
+kdump_status
+create_qemu_cpu_regs(kdump_ctx_t *ctx, unsigned cpu,
+		     struct derived_attr_def *def, unsigned ndef)
+{
+	static const struct attr_ops qemu_cpustate_reg_ops = {
+		.revalidate = qemu_cpustate_reg_revalidate,
+		.post_set = qemu_cpustate_reg_update,
+	};
+
+	struct attr_data *dir;
+	kdump_status status;
+
+	status = cpu_regs_dir(ctx, cpu, &dir);
+	while (status == KDUMP_OK && ndef--) {
+		def->tmpl.ops = &qemu_cpustate_reg_ops;
 		status = create_derived_attr(ctx, dir, def++);
 	}
 

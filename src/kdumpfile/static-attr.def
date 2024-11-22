@@ -45,6 +45,9 @@ ATTR(arch, "page_shift", page_shift, number, unsigned, .ops = &page_shift_ops)
 /* number of CPUs in the system  */
 ATTR(cpu, "number", num_cpus, number, unsigned)
 
+/* number of QEMU CPU states */
+ATTR(cpu, "qemu_number", num_qemu_cpus, number, unsigned)
+
 /* dump file descriptor set */
 ATTR(file_set, "number", num_files, number, unsigned, .ops = &num_files_ops)
 
