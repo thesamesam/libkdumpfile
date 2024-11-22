@@ -73,6 +73,58 @@ struct elf_prstatus
 	/* optional UNUSED fields may follow */
 } __attribute__((packed));
 
+/** Implemented QEMU CPU state version  */
+#define QEMUCPUSTATE_VERSION	1
+
+struct qemu_cpu_seg {
+	uint32_t selector;
+	uint32_t limit;
+	uint32_t flags;
+	uint32_t pad;
+	uint64_t base;
+} __attribute__((packed));
+
+struct qemu_cpu_state {
+	uint32_t version;
+	uint32_t size;
+	uint64_t rax;
+	uint64_t rbx;
+	uint64_t rcx;
+	uint64_t rdx;
+	uint64_t rsi;
+	uint64_t rdi;
+	uint64_t rsp;
+	uint64_t rbp;
+	uint64_t r8;
+	uint64_t r9;
+	uint64_t r10;
+	uint64_t r11;
+	uint64_t r12;
+	uint64_t r13;
+	uint64_t r14;
+	uint64_t r15;
+	uint64_t rip;
+	uint64_t rflags;
+	struct qemu_cpu_seg cs;
+	struct qemu_cpu_seg ds;
+	struct qemu_cpu_seg es;
+	struct qemu_cpu_seg fs;
+	struct qemu_cpu_seg gs;
+	struct qemu_cpu_seg ss;
+	struct qemu_cpu_seg ldt;
+	struct qemu_cpu_seg tr;
+	struct qemu_cpu_seg gdt;
+	struct qemu_cpu_seg idt;
+	uint64_t cr[5];
+
+	/*
+	 * Fields below are optional and are being added at the end without
+	 * changing the version. External tools may identify their presence
+	 * by checking 'size' field.
+	 */
+	uint64_t kernel_gs_base;
+} __attribute__((packed));
+
 struct xen_cpu_user_regs {
 	uint64_t r15;
 	uint64_t r14;
@@ -268,6 +320,79 @@ process_x86_64_prstatus(kdump_ctx_t *ctx, const void *data, size_t size)
 	return status;
 }
 
+#define QEMU_REG_FIELD(name, field) \
+	DERIVED_NUMBER(#name, 1, struct qemu_cpu_state, field)
+#define QEMU_REG(name) \
+	QEMU_REG_FIELD(name, name)
+#define QEMU_REG_SEG(name) \
+	QEMU_REG_FIELD(name, name.selector), \
+	QEMU_REG_FIELD(name ## _limit, name.limit), \
+	QEMU_REG_FIELD(name ## _flags, name.flags), \
+	QEMU_REG_FIELD(name ## _base, name.base)
+#define QEMU_REG_CR(num) \
+	QEMU_REG_FIELD(cr ## num, cr[num])
+
+static struct derived_attr_def x86_64_qemu_reg_attrs[] = {
+	QEMU_REG(rax),
+	QEMU_REG(rbx),
+	QEMU_REG(rcx),
+	QEMU_REG(rdx),
+	QEMU_REG(rsi),
+	QEMU_REG(rdi),
+	QEMU_REG(rsp),
+	QEMU_REG(rbp),
+	QEMU_REG(r8),
+	QEMU_REG(r9),
+	QEMU_REG(r10),
+	QEMU_REG(r11),
+	QEMU_REG(r12),
+	QEMU_REG(r13),
+	QEMU_REG(r14),
+	QEMU_REG(r15),
+	QEMU_REG(rip),
+	QEMU_REG(rflags),
+	QEMU_REG_SEG(cs),
+	QEMU_REG_SEG(ds),
+	QEMU_REG_SEG(es),
+	QEMU_REG_SEG(fs),
+	QEMU_REG_SEG(gs),
+	QEMU_REG_SEG(ss),
+	QEMU_REG_SEG(ldt),
+	QEMU_REG_SEG(tr),
+	QEMU_REG_FIELD(gdt_base, gdt.base),
+	QEMU_REG_FIELD(gdt_limit, gdt.limit),
+	QEMU_REG_FIELD(idt_base, idt.base),
+	QEMU_REG_FIELD(idt_limit, idt.limit),
+	QEMU_REG_CR(0),
+	QEMU_REG_CR(1),
+	QEMU_REG_CR(2),
+	QEMU_REG_CR(3),
+	QEMU_REG_CR(4),
+};
+
+static kdump_status
+process_x86_64_qemu_cpustate(kdump_ctx_t *ctx, const void *data, size_t size)
+{
+	unsigned cpu;
+	kdump_status status;
+
+	cpu = isset_num_qemu_cpus(ctx) ? get_num_qemu_cpus(ctx) : 0;
+	set_num_qemu_cpus(ctx, cpu + 1);
+
+	status = init_qemu_cpustate(ctx, cpu, data, size);
+	if (status != KDUMP_OK)
+		return set_error(ctx, status, "Cannot set CPU %u %s",
+				 cpu, "QEMU_CPUSTATE");
+
+	if (size < offsetof(struct qemu_cpu_state, kernel_gs_base))
+		return set_error(ctx, KDUMP_ERR_CORRUPT,
+				 "Wrong QEMUCPUState size: %zu", size);
+
+	return create_qemu_cpu_regs(
+		ctx, cpu, x86_64_qemu_reg_attrs,
+		ARRAY_SIZE(x86_64_qemu_reg_attrs));
+}
+
 #define XEN_REG(name, field, bits) \
 	{ { #name, { .depth = 1 }, KDUMP_NUMBER },	  \
 	  offsetof(struct xen_vcpu_guest_context, field), \
@@ -353,5 +478,6 @@ process_x86_64_xen_prstatus(kdump_ctx_t *ctx, const void *data, size_t size)
 const struct arch_ops x86_64_ops = {
 	.post_addrxlat = x86_64_post_addrxlat,
 	.process_prstatus = process_x86_64_prstatus,
+	.process_qemu_cpustate = process_x86_64_qemu_cpustate,
 	.process_xen_prstatus = process_x86_64_xen_prstatus,
 };
