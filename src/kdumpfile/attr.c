@@ -499,12 +499,31 @@ dealloc_attr(struct attr_data *attr)
  *                attribute (root directory).
  * @param tmpl    Attribute template.
  * @returns       Attribute data, or @c NULL on allocation failure.
+ *
+ * If an attribute with the same path already exists, reuse the existing
+ * attribute, discarding its original value and replacing the template.
  */
 struct attr_data *
 new_attr(struct attr_dict *dict, struct attr_data *parent,
 	 const struct attr_template *tmpl)
 {
 	struct attr_data *attr;
+
+	if (parent) {
+		attr = lookup_dir_attr_no_fallback(
+			dict, parent, tmpl->key, strlen(tmpl->key));
+		if (attr) {
+			discard_value(attr);
+			if (attr->tflags.dyntmpl)
+				free((void*) attr->template);
+			attr->template = tmpl;
+
+			memset(&attr->flags, 0,
+			       offsetof(struct attr_data, list) -
+			       offsetof(struct attr_data, flags));
+			return attr;
+		}
+	}
 
 	attr = alloc_attr(dict, parent, tmpl);
 	if (!attr)
