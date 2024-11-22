@@ -223,6 +223,9 @@ struct arch_ops {
 	/** Process an NT_PRSTATUS note. */
 	kdump_status (*process_prstatus)(kdump_ctx_t *, const void *, size_t);
 
+	/** Process a QEMU CPU state note. */
+	kdump_status (*process_qemu_cpustate)(kdump_ctx_t *, const void *, size_t);
+
 	/** Process a Xen .xen_prstatus section. */
 	kdump_status (*process_xen_prstatus)(kdump_ctx_t *, const void *, size_t);
 

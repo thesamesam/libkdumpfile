@@ -315,6 +315,25 @@ process_xen_dumpcore_version(kdump_ctx_t *ctx, void *data, size_t len)
 	return KDUMP_OK;
 }
 
+/** QEMU ELF note types. */
+enum {
+	QEMU_ELFNOTE_CPUSTATE = 0,
+};
+
+static kdump_status
+process_qemu_note(kdump_ctx_t *ctx, uint32_t type,
+		  void *desc, size_t descsz)
+{
+	if (type == QEMU_ELFNOTE_CPUSTATE) {
+		if (ctx->shared->arch_ops &&
+		    ctx->shared->arch_ops->process_qemu_cpustate)
+			return ctx->shared->arch_ops->process_qemu_cpustate(
+				ctx, desc, descsz);
+	}
+
+	return KDUMP_OK;
+}
+
 /* These fields in kdump_ctx_t must be initialised:
  *
  *   endian
@@ -398,6 +417,8 @@ do_arch_note(kdump_ctx_t *ctx, Elf32_Word type,
 {
 	if (note_equal("CORE", name, namesz))
 		return process_core_note(ctx, type, desc, descsz);
+	else if (note_equal("QEMU", name, namesz))
+		return process_qemu_note(ctx, type, desc, descsz);
 	else if (note_equal("Xen", name, namesz))
 		return process_xen_note(ctx, type, desc, descsz);
 	else if (note_equal(".note.Xen", name, namesz))
