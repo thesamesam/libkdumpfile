@@ -199,6 +199,32 @@ attr_hash_index(const struct attr_data *attr)
 	return fold_hash(phash_value(&ph), ATTR_HASH_BITS);
 }
 
+/**  Look up a child attribute of a given directory (no fallback).
+ * @param dict    Attribute dictionary.
+ * @param dir     Directory attribute.
+ * @param key     Key name relative to @p dir.
+ * @param keylen  Initial portion of @c key to be considered.
+ * @returns       Stored attribute or @c NULL if not found.
+ */
+static struct attr_data *
+lookup_dir_attr_no_fallback(struct attr_dict *dict,
+			    const struct attr_data *dir,
+			    const char *key, size_t keylen)
+{
+	struct attr_data *d;
+	struct phash ph;
+	unsigned hash;
+
+	phash_init(&ph);
+	path_hash(&ph, dir);
+	phash_update(&ph, key, keylen);
+	hash = fold_hash(phash_value(&ph), ATTR_HASH_BITS);
+	hlist_for_each_entry(d, &dict->attr.table[hash], list)
+		if (!keycmp(d, dir, key, keylen))
+			return d;
+	return NULL;
+}
+
 /**  Look up a child attribute of a given directory.
  * @param dict    Attribute dictionary.
  * @param dir     Directory attribute.
@@ -214,16 +240,11 @@ lookup_dir_attr(struct attr_dict *dict,
 		const struct attr_data *dir,
 		const char *key, size_t keylen)
 {
-	bool fallback;
 	struct phash ph;
 	unsigned hash;
 
-	if (*key == '.') {
-		++key;
-		--keylen;
-		fallback = false;
-	} else
-		fallback = true;
+	if (*key == '.')
+		return lookup_dir_attr_no_fallback(dict, dir, ++key, --keylen);
 
 	phash_init(&ph);
 	path_hash(&ph, dir);
@@ -234,7 +255,7 @@ lookup_dir_attr(struct attr_dict *dict,
 		hlist_for_each_entry(d, &dict->attr.table[hash], list)
 			if (!keycmp(d, dir, key, keylen))
 				return d;
-		dict = fallback ? dict->fallback : NULL;
+		dict = dict->fallback;
 	} while (dict);
 
 	return NULL;
