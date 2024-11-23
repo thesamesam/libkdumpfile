@@ -359,19 +359,9 @@ static struct derived_attr_def x86_64_qemu_reg_attrs[] = {
 };
 
 static kdump_status
-process_x86_64_qemu_cpustate(kdump_ctx_t *ctx, const void *data, size_t size)
+process_x86_64_qemu_cpustate(kdump_ctx_t *ctx, unsigned int cpu,
+			     const void *data, size_t size)
 {
-	unsigned cpu;
-	kdump_status status;
-
-	cpu = isset_num_qemu_cpus(ctx) ? get_num_qemu_cpus(ctx) : 0;
-	set_num_qemu_cpus(ctx, cpu + 1);
-
-	status = init_qemu_cpustate(ctx, cpu, data, size);
-	if (status != KDUMP_OK)
-		return set_error(ctx, status, "Cannot set CPU %u %s",
-				 cpu, "QEMU_CPUSTATE");
-
 	if (size < offsetof(struct qemu_cpu_state, kernel_gs_base))
 		return set_error(ctx, KDUMP_ERR_CORRUPT,
 				 "Wrong QEMUCPUState size: %zu", size);

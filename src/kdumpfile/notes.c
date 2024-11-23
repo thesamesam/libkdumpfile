@@ -336,10 +336,21 @@ process_qemu_note(kdump_ctx_t *ctx, uint32_t type,
 		  void *desc, size_t descsz)
 {
 	if (type == QEMU_ELFNOTE_CPUSTATE) {
+		unsigned int cpu;
+		kdump_status status;
+
+		cpu = isset_num_qemu_cpus(ctx) ? get_num_qemu_cpus(ctx) : 0;
+		set_num_qemu_cpus(ctx, cpu + 1);
+
+		status = init_qemu_cpustate(ctx, cpu, desc, descsz);
+		if (status != KDUMP_OK)
+			return set_error(ctx, status, "Cannot set CPU %u %s",
+					 cpu, "QEMU_CPUSTATE");
+
 		if (ctx->shared->arch_ops &&
 		    ctx->shared->arch_ops->process_qemu_cpustate)
 			return ctx->shared->arch_ops->process_qemu_cpustate(
-				ctx, desc, descsz);
+				ctx, cpu, desc, descsz);
 	}
 
 	return KDUMP_OK;
