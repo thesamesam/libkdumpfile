@@ -362,9 +362,20 @@ static kdump_status
 process_x86_64_qemu_cpustate(kdump_ctx_t *ctx, unsigned int cpu,
 			     const void *data, size_t size)
 {
+	const struct qemu_cpu_state *state = data;
+
 	if (size < offsetof(struct qemu_cpu_state, kernel_gs_base))
 		return set_error(ctx, KDUMP_ERR_CORRUPT,
 				 "Wrong QEMUCPUState size: %zu", size);
+
+	/* Ignore unsupported versions */
+	if (dump32toh(ctx, state->version) != QEMUCPUSTATE_VERSION)
+		return KDUMP_OK;
+
+	if (dump32toh(ctx, state->size) > size)
+		return set_error(ctx, KDUMP_ERR_CORRUPT,
+				 "QEMUCPUState size %" PRIu32 " > note size %zu",
+				 dump32toh(ctx, state->size), size);
 
 	return create_qemu_cpu_regs(
 		ctx, cpu, x86_64_qemu_reg_attrs,
