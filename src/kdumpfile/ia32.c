@@ -95,27 +95,15 @@ static struct derived_attr_def ia32_reg_attrs[] = {
 };
 
 static kdump_status
-process_ia32_prstatus(kdump_ctx_t *ctx, const void *data, size_t size)
+process_ia32_prstatus(kdump_ctx_t *ctx, unsigned int cpu,
+		      const void *data, size_t size)
 {
-	unsigned cpu;
-	kdump_status status;
-
-	cpu = get_num_cpus(ctx);
-	set_num_cpus(ctx, get_num_cpus(ctx) + 1);
-
-	status = init_cpu_prstatus(ctx, cpu, data, size);
-	if (status != KDUMP_OK)
-		return set_error(ctx, status,
-				 "Cannot set CPU %u PRSTATUS", cpu);
-
 	if (size < sizeof(struct elf_prstatus))
 		return set_error(ctx, KDUMP_ERR_CORRUPT,
 				 "Wrong PRSTATUS size: %zu", size);
 
-	status = create_cpu_regs(
+	return create_cpu_regs(
 		ctx, cpu, ia32_reg_attrs, ARRAY_SIZE(ia32_reg_attrs));
-
-	return status;
 }
 
 static kdump_status

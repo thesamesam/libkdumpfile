@@ -173,9 +173,20 @@ process_core_note(kdump_ctx_t *ctx, uint32_t type,
 		  void *desc, size_t descsz)
 {
 	if (type == NT_PRSTATUS) {
+		unsigned int cpu;
+		kdump_status status;
+
+		cpu = isset_num_cpus(ctx) ? get_num_cpus(ctx) : 0;
+		set_num_cpus(ctx, cpu + 1);
+
+		status = init_cpu_prstatus(ctx, cpu, desc, descsz);
+		if (status != KDUMP_OK)
+			return set_error(ctx, status, "Cannot set CPU %u %s",
+					 cpu, "PRSTATUS");
+
 		if (ctx->shared->arch_ops && ctx->shared->arch_ops->process_prstatus)
 			return ctx->shared->arch_ops->process_prstatus(
-				ctx, desc, descsz);
+				ctx, cpu, desc, descsz);
 	} else if (type == NT_TASKSTRUCT) {
 		return process_task_struct(ctx, desc, descsz);
 	}
