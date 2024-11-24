@@ -224,6 +224,7 @@ test_scripts = \
 	elf-prstatus-s390x \
 	elf-prstatus-x86_64 \
 	elf-qemu-cpustate-x86_64 \
+	elf-qemu-cpustate-wrongver \
 	elf-task_struct \
 	elf-basic \
 	elf-basic-flat \
@@ -370,6 +371,7 @@ dist_check_DATA = \
 	elf-prstatus-s390x.data \
 	elf-prstatus-x86_64.data \
 	elf-qemu-cpustate-x86_64.data \
+	elf-qemu-cpustate-wrongver.data \
 	elf-task_struct.data \
         elf-endian.data \
         elf-be16.expect \

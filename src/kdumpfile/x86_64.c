@@ -364,14 +364,16 @@ process_x86_64_qemu_cpustate(kdump_ctx_t *ctx, unsigned int cpu,
 {
 	const struct qemu_cpu_state *state = data;
 
-	if (size < offsetof(struct qemu_cpu_state, kernel_gs_base))
-		return set_error(ctx, KDUMP_ERR_CORRUPT,
-				 "Wrong QEMUCPUState size: %zu", size);
+	if (size < (offsetof(struct qemu_cpu_state, version) +
+		    sizeof(state->version)))
+		goto err_size;
 
 	/* Ignore unsupported versions */
 	if (dump32toh(ctx, state->version) != QEMUCPUSTATE_VERSION)
 		return KDUMP_OK;
 
+	if (size < offsetof(struct qemu_cpu_state, kernel_gs_base))
+		goto err_size;
 	if (dump32toh(ctx, state->size) > size)
 		return set_error(ctx, KDUMP_ERR_CORRUPT,
 				 "QEMUCPUState size %" PRIu32 " > note size %zu",
@@ -380,6 +382,10 @@ process_x86_64_qemu_cpustate(kdump_ctx_t *ctx, unsigned int cpu,
 	return create_qemu_cpu_regs(
 		ctx, cpu, x86_64_qemu_reg_attrs,
 		ARRAY_SIZE(x86_64_qemu_reg_attrs));
+
+ err_size:
+	return set_error(ctx, KDUMP_ERR_CORRUPT,
+			 "QEMUCPUState too short: %zu bytes", size);
 }
 
 #define XEN_REG(name, field, bits) \
