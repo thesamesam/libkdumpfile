@@ -711,46 +711,47 @@ set_xen_p2m(struct os_init_data *ctl)
 }
 
 /** Get the top-level page table address for a Linux kernel.
- * @param ctx   Address translation object.
- * @param addr  Root page table address. Updated on success.
+ * @param ctl   Initialization data.
  * @returns     Error status.
  *
  * It is not an error if the root page table address cannot be
  * determined; it merely stays uninitialized.
  */
 static addrxlat_status
-get_linux_pgt_root(addrxlat_ctx_t *ctx, addrxlat_fulladdr_t *addr)
+get_linux_pgt_root(struct os_init_data *ctl)
 {
 	static const char err_fmt[] = "Cannot resolve \"%s\"";
+	addrxlat_fulladdr_t *addr;
 	addrxlat_status status;
 
+	addr = &ctl->sys->meth[ADDRXLAT_SYS_METH_PGT].param.pgt.root;
 	if (addr->as != ADDRXLAT_NOADDR)
 		return ADDRXLAT_OK;
 
-	status = get_symval(ctx, "init_top_pgt", &addr->addr);
+	status = get_symval(ctl->ctx, "init_top_pgt", &addr->addr);
 	if (status == ADDRXLAT_OK) {
 		addr->as = ADDRXLAT_KVADDR;
 		return status;
 	} else if (status != ADDRXLAT_ERR_NODATA)
-		return set_error(ctx, status, err_fmt, "init_top_pgt");
-	clear_error(ctx);
+		return set_error(ctl->ctx, status, err_fmt, "init_top_pgt");
+	clear_error(ctl->ctx);
 
-	status = get_symval(ctx, "init_level4_pgt", &addr->addr);
+	status = get_symval(ctl->ctx, "init_level4_pgt", &addr->addr);
 	if (status == ADDRXLAT_OK) {
 		addr->as = ADDRXLAT_KVADDR;
 		return status;
 	} else if (status != ADDRXLAT_ERR_NODATA)
-		return set_error(ctx, status, err_fmt, "init_level4_pgt");
-	clear_error(ctx);
+		return set_error(ctl->ctx, status, err_fmt, "init_level4_pgt");
+	clear_error(ctl->ctx);
 
-	status = get_reg(ctx, "cr3", &addr->addr);
+	status = get_reg(ctl->ctx, "cr3", &addr->addr);
 	if (status == ADDRXLAT_OK) {
 		addr->addr &= ~PAGE_MASK;
 		addr->as = ADDRXLAT_MACHPHYSADDR;
 		return status;
 	} else if (status != ADDRXLAT_ERR_NODATA)
-		return set_error(ctx, status, err_fmt, "cr3");
-	clear_error(ctx);
+		return set_error(ctl->ctx, status, err_fmt, "cr3");
+	clear_error(ctl->ctx);
 
 	return ADDRXLAT_OK;
 }
@@ -762,21 +763,20 @@ get_linux_pgt_root(addrxlat_ctx_t *ctx, addrxlat_fulladdr_t *addr)
 static addrxlat_status
 map_linux_x86_64(struct os_init_data *ctl)
 {
-	addrxlat_meth_t *meth;
 	addrxlat_addr_t sme_mask;
 	unsigned long read_caps;
 	addrxlat_status status;
 
 	/* Set up page table translation. */
-	meth = &ctl->sys->meth[ADDRXLAT_SYS_METH_PGT];
-	status = get_linux_pgt_root(ctl->ctx, &meth->param.pgt.root);
+	status = get_linux_pgt_root(ctl);
 	if (status != ADDRXLAT_OK)
 		return set_error(ctl->ctx, status,
 				 "Cannot determine root page table");
 
 	status = get_number(ctl->ctx, "sme_mask", &sme_mask);
 	if (status == ADDRXLAT_OK)
-		meth->param.pgt.pte_mask = sme_mask;
+		ctl->sys->meth[ADDRXLAT_SYS_METH_PGT].param.pgt.pte_mask =
+			sme_mask;
 	else if (status == ADDRXLAT_ERR_NODATA)
 		clear_error(ctl->ctx);
 	else
