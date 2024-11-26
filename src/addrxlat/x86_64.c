@@ -713,6 +713,7 @@ get_linux_pgt_root(addrxlat_ctx_t *ctx, addrxlat_fulladdr_t *addr)
 
 	status = get_reg(ctx, "cr3", &addr->addr);
 	if (status == ADDRXLAT_OK) {
+		addr->addr &= ~PAGE_MASK;
 		addr->as = ADDRXLAT_MACHPHYSADDR;
 		return status;
 	} else if (status != ADDRXLAT_ERR_NODATA)
@@ -740,7 +741,6 @@ map_linux_x86_64(struct os_init_data *ctl)
 	if (status != ADDRXLAT_OK)
 		return set_error(ctl->ctx, status,
 				 "Cannot determine root page table");
-	meth->param.pgt.root.addr &= ~PAGE_MASK;
 
 	status = get_number(ctl->ctx, "sme_mask", &sme_mask);
 	if (status == ADDRXLAT_OK)
