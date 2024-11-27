@@ -404,11 +404,13 @@ set_pgt_fallback(addrxlat_sys_t *sys, addrxlat_sys_meth_t idx)
 static addrxlat_status
 linux_rdirect_map(struct os_init_data *ctl)
 {
-	/** Possible direct mapping locations (if not randomized). */
+	/** Possible direct mapping locations (if not randomized).
+	 * Try more recent kernels first.
+	 */
 	static const addrxlat_addr_t fixed_loc[] = {
-		LINUX_DIRECTMAP_START_2_6_0,
-		LINUX_DIRECTMAP_START_2_6_11,
 		LINUX_DIRECTMAP_START_2_6_31,
+		LINUX_DIRECTMAP_START_2_6_11,
+		LINUX_DIRECTMAP_START_2_6_0,
 	};
 
 	struct sys_region layout[2];
