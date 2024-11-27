@@ -108,21 +108,30 @@
 /** End of direct physical mapping in Linux between 2.6.11 and 2.6.27 */
 #define LINUX_DIRECTMAP_END_2_6_11	0xffffc0ffffffffff
 
-/** Start of direct physical mapping in Linux 2.6.27+ */
+/** Start of direct physical mapping in Linux between 2.6.27 and 2.6.31 */
 #define LINUX_DIRECTMAP_START_2_6_27	0xffff880000000000
 /** End of direct physical mapping in Linux between 2.6.27 and 2.6.31 */
 #define LINUX_DIRECTMAP_END_2_6_27	0xffffc0ffffffffff
 
-/** Start of direct physical mapping in Linux 2.6.31+ */
+/** Start of direct physical mapping in Linux between 2.6.31 and 4.2 */
 #define LINUX_DIRECTMAP_START_2_6_31	LINUX_DIRECTMAP_START_2_6_27
-/** End of direct physical mapping in Linux 2.6.31+ */
+/** End of direct physical mapping in Linux between 2.6.31 and 4.2 */
 #define LINUX_DIRECTMAP_END_2_6_31	0xffffc7ffffffffff
 
-/** Start of direct physical mapping with 5-level paging */
-#define LINUX_DIRECTMAP_START_5LEVEL	0xff11000000000000
+/** Start of direct physical mapping in Linux 4.2+ */
+#define LINUX_DIRECTMAP_START_4_2	0xffff888000000000
+/** End of direct physical mapping in Linux 4.2+ */
+#define LINUX_DIRECTMAP_END_4_2		0xffffc8ffffffffff
 
-/** End of direct physical mapping with 5-level paging */
-#define LINUX_DIRECTMAP_END_5LEVEL	0xff90ffffffffffff
+/** Start of direct physical mapping with 5-level paging before 4.2 */
+#define LINUX_DIRECTMAP_START_5L	0xff10000000000000
+/** End of direct physical mapping with 5-level paging before 4.2 */
+#define LINUX_DIRECTMAP_END_5L		0xff8fffffffffffff
+
+/** Start of direct physical mapping with 5-level paging in 4.2+ */
+#define LINUX_DIRECTMAP_START_5L_4_2	0xff11000000000000
+/** End of direct physical mapping with 5-level paging in 4.2+ */
+#define LINUX_DIRECTMAP_END_5L_4_2	0xff90ffffffffffff
 
 /** AMD64 (Intel 64) page table step function.
  * @param step  Current step state.
@@ -306,11 +315,11 @@ linux_directmap_by_pgt(struct sys_region *rgn,
 	}
 
 	if (step.meth->param.pgt.pf.nfields == 6) {
-		rgn->first = LINUX_DIRECTMAP_START_5LEVEL;
-		end = LINUX_DIRECTMAP_END_5LEVEL;
+		rgn->first = LINUX_DIRECTMAP_START_5L;
+		end = LINUX_DIRECTMAP_END_5L_4_2;
 	} else {
 		rgn->first = LINUX_DIRECTMAP_START_2_6_31;
-		end = LINUX_DIRECTMAP_END_2_6_31;
+		end = LINUX_DIRECTMAP_END_4_2;
 	}
 	status = lowest_mapped(&step, &rgn->first, end);
 	if (status == ADDRXLAT_OK) {
@@ -408,6 +417,7 @@ linux_rdirect_map(struct os_init_data *ctl)
 	 * Try more recent kernels first.
 	 */
 	static const addrxlat_addr_t fixed_loc[] = {
+		LINUX_DIRECTMAP_START_4_2,
 		LINUX_DIRECTMAP_START_2_6_31,
 		LINUX_DIRECTMAP_START_2_6_11,
 		LINUX_DIRECTMAP_START_2_6_0,

@@ -7,7 +7,7 @@
 
 @direct: LINEAR
   target_as=KPHYSADDR
-  off=0x780000000000
+  off=0x778000000000
 
 @ktext: LINEAR
   target_as=KPHYSADDR
@@ -15,7 +15,7 @@
 
 @rdirect: LINEAR
   target_as=KVADDR
-  off=0xffff880000000000
+  off=0xffff888000000000
 
 @machphys_kphys: LINEAR
   target_as=KPHYSADDR
@@ -33,9 +33,9 @@ ffff800000000000-ffffffffffffffff: @rootpgt
 KV -> PHYS:
 0-7fffffffffff: @rootpgt
 800000000000-ffff7fffffffffff: NONE
-ffff800000000000-ffff87ffffffffff: @rootpgt
-ffff880000000000-ffffc7ffffffffff: @direct
-ffffc80000000000-ffffffff81c08fff: @rootpgt
+ffff800000000000-ffff887fffffffff: @rootpgt
+ffff888000000000-ffffc87fffffffff: @direct
+ffffc88000000000-ffffffff81c08fff: @rootpgt
 ffffffff81c09000-ffffffff81c09fff: @ktext
 ffffffff81c0a000-ffffffffffffffff: @rootpgt
 
