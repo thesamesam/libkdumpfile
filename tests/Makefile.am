@@ -585,5 +585,8 @@ TESTS = $(test_scripts) \
 	vmci-post \
 	xlatop
 
+EXTRA_DIST = \
+	dump-pgt.py
+
 clean-local:
 	-rm -rf out
