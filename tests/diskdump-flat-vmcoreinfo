@@ -9,7 +9,7 @@ pageflags=raw
 extraparam="
 flattened = yes
 version = 3
-VMCOREINFO = vmcoreinfo.data
+VMCOREINFO = $srcdir/vmcoreinfo.data
 "
 extracheckattr="
 linux.vmcoreinfo.lines.OSRELEASE = string:6.4.3-1-default
