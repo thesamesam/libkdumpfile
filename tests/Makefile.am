@@ -317,6 +317,7 @@ test_scripts = \
 	xlat-linux-x86_64-4.13-nover \
 	xlat-linux-x86_64-4.13-kaslr \
 	xlat-linux-x86_64-5l \
+	xlat-linux-x86_64-6.11-pti-ldt \
 	xlat-xen-ia32 \
 	xlat-xen-ia32-pae \
 	xlat-xen-x86_64-old \
@@ -531,6 +532,9 @@ dist_check_DATA = \
 	xlat-linux-x86_64-5l.data \
 	xlat-linux-x86_64-5l.expect \
 	xlat-linux-x86_64-5l.sym \
+	xlat-linux-x86_64-6.11-pti-ldt.data \
+	xlat-linux-x86_64-6.11-pti-ldt.expect \
+	xlat-linux-x86_64-6.11-pti-ldt.sym \
 	xlat-xen-ia32.data \
 	xlat-xen-ia32.expect \
 	xlat-xen-ia32-pae.data \

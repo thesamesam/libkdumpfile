@@ -281,6 +281,41 @@ is_directmap(addrxlat_sys_t *sys, addrxlat_ctx_t *ctx,
 	return status == ADDRXLAT_OK && addr == 0;
 }
 
+/** Search for Linux directmap in the page tables.
+ * @param rgn   Directmap region; updated on success.
+ * @param step  Initial state for page table translation.
+ * @returns    Error status.
+ */
+static addrxlat_status
+linux_search_directmap(struct sys_region *rgn, addrxlat_step_t *step)
+{
+	addrxlat_addr_t end;
+	addrxlat_status status;
+
+	if (step->meth->param.pgt.pf.nfields == 6) {
+		rgn->first = LINUX_DIRECTMAP_START_5L;
+		end = LINUX_DIRECTMAP_END_5L_4_2;
+	} else {
+		rgn->first = LINUX_DIRECTMAP_START_2_6_31;
+		end = LINUX_DIRECTMAP_END_4_2;
+	}
+	while (rgn->first < end) {
+		status = lowest_mapped(step, &rgn->first, end);
+		if (status != ADDRXLAT_OK)
+			break;
+		if (is_directmap(step->sys, step->ctx, rgn->first)) {
+			rgn->last = rgn->first;
+			return highest_linear(step, &rgn->last, end,
+					      -rgn->first);
+		}
+		status = lowest_unmapped(step, &rgn->first, end);
+		if (status != ADDRXLAT_OK)
+			break;
+	}
+
+	return ADDRXLAT_ERR_NOTIMPL;
+}
+
 /** Get directmap location by walking page tables.
  * @param rgn  Directmap region; updated on success.
  * @param sys  Translation system object.
@@ -295,8 +330,6 @@ linux_directmap_by_pgt(struct sys_region *rgn,
 		       addrxlat_sys_t *sys, addrxlat_ctx_t *ctx)
 {
 	addrxlat_step_t step;
-	addrxlat_addr_t end;
-	addrxlat_status status;
 
 	step.ctx = ctx;
 	step.sys = sys;
@@ -314,20 +347,7 @@ linux_directmap_by_pgt(struct sys_region *rgn,
 				      LINUX_DIRECTMAP_END_2_6_11, -rgn->first);
 	}
 
-	if (step.meth->param.pgt.pf.nfields == 6) {
-		rgn->first = LINUX_DIRECTMAP_START_5L;
-		end = LINUX_DIRECTMAP_END_5L_4_2;
-	} else {
-		rgn->first = LINUX_DIRECTMAP_START_2_6_31;
-		end = LINUX_DIRECTMAP_END_4_2;
-	}
-	status = lowest_mapped(&step, &rgn->first, end);
-	if (status == ADDRXLAT_OK) {
-		rgn->last = rgn->first;
-		return highest_linear(&step, &rgn->last, end, -rgn->first);
-	}
-
-	return ADDRXLAT_ERR_NOTIMPL;
+	return linux_search_directmap(rgn, &step);
 }
 
 /** Set up Linux direct mapping on x86_64.
