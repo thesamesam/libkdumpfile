@@ -370,10 +370,8 @@ linux_directmap(struct os_init_data *ctl)
 		layout[0].act = SYS_ACT_DIRECT;
 		layout[1].meth = ADDRXLAT_SYS_METH_NUM;
 		status = sys_set_layout(ctl, ADDRXLAT_SYS_MAP_KV_PHYS, layout);
-		if (status != ADDRXLAT_OK)
-			return status;
 	}
-	return ADDRXLAT_OK;
+	return status;
 }
 
 /** Set the kernel text mapping offset.
@@ -816,7 +814,7 @@ map_linux_x86_64(struct os_init_data *ctl)
 
 	/* Set up direct mapping. */
 	status = linux_directmap(ctl);
-	if (status != ADDRXLAT_OK)
+	if (status != ADDRXLAT_OK && status != ADDRXLAT_ERR_NOTIMPL)
 		return status;
 
 	return ADDRXLAT_OK;
