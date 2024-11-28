@@ -133,6 +133,9 @@
 /** End of direct physical mapping with 5-level paging in 4.2+ */
 #define LINUX_DIRECTMAP_END_5L_4_2	0xff90ffffffffffff
 
+/** Linux Page Table Isolation bit in CR3. */
+#define LINUX_PTI_USER_PGTABLE_MASK	((addrxlat_addr_t)1 << PAGE_SHIFT)
+
 /** AMD64 (Intel 64) page table step function.
  * @param step  Current step state.
  * @returns     Error status.
@@ -746,7 +749,16 @@ get_linux_pgt_root(struct os_init_data *ctl)
 	if (status == ADDRXLAT_OK) {
 		addr->addr &= ~PAGE_MASK;
 		addr->as = ADDRXLAT_MACHPHYSADDR;
-		return status;
+		if (!(addr->addr & LINUX_PTI_USER_PGTABLE_MASK))
+			return status;
+		status = linux_directmap(ctl);
+		if (status == ADDRXLAT_ERR_NOTIMPL) {
+			addr->addr &= ~LINUX_PTI_USER_PGTABLE_MASK;
+			status = linux_directmap(ctl);
+			if (status == ADDRXLAT_OK)
+				return status;
+			addr->addr |= LINUX_PTI_USER_PGTABLE_MASK;
+		}
 	} else if (status != ADDRXLAT_ERR_NODATA)
 		return set_error(ctl->ctx, status, err_fmt, "cr3");
 	clear_error(ctl->ctx);
