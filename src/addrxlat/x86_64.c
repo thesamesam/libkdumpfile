@@ -363,6 +363,9 @@ linux_directmap(struct os_init_data *ctl)
 	struct sys_region layout[2];
 	addrxlat_status status;
 
+	if (ctl->sys->meth[ADDRXLAT_SYS_METH_DIRECT].kind != ADDRXLAT_NOMETH)
+		return ADDRXLAT_OK;
+
 	status = linux_directmap_by_pgt(&layout[0], ctl->sys, ctl->ctx);
 	if (status != ADDRXLAT_OK && opt_isset(ctl->popt, version_code))
 		status = linux_directmap_by_ver(&layout[0],
