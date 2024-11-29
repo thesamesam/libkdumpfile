@@ -392,28 +392,6 @@ discard_attr_value(struct attr_data *attr)
 	attr->flags.dynstr = 0;
 }
 
-/**  Discard the new value of an attribute.
- * @param attr    Base attribute.
- * @prarm flags   New value flags.
- * @param newval  New value (which should be discarded).
- *
- * This helper is called when a new value cannot be set (the pre_set hook
- * returns an error status). At that point the attribute should preserve its
- * old value, but the new value should be discarded.
- */
-static void
-discard_new_value(const struct attr_data *attr,
-		  struct attr_flags flags, kdump_attr_value_t *newval)
-{
-	struct attr_data tmp;
-	tmp.template = attr->template;
-	tmp.flags = flags;
-	tmp.flags.isset = 1;
-	tmp.flags.indirect = 0;
-	tmp.val = *newval;
-	discard_attr_value(&tmp);
-}
-
 /**  Clear (unset) a single attribute.
  * @param ctx   Dump file object.
  * @param attr  Attribute to be cleared.
@@ -966,7 +944,8 @@ set_attr(kdump_ctx_t *ctx, struct attr_data *attr,
 		const struct attr_ops *ops = attr->template->ops;
 		if (ops && ops->pre_set &&
 		    (res = ops->pre_set(ctx, attr, pval)) != KDUMP_OK) {
-			discard_new_value(attr, flags, pval);
+			flags.indirect = 0;
+			discard_value(pval, attr->template->type, flags);
 			return res;
 		}
 	}
