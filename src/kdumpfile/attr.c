@@ -349,7 +349,7 @@ alloc_attr(struct attr_dict *dict, struct attr_data *parent,
  * If the value is refcounted, drop the reference.
  */
 static void
-discard_value(struct attr_data *attr)
+discard_attr_value(struct attr_data *attr)
 {
 	if (!attr_isset(attr))
 		return;
@@ -398,7 +398,7 @@ discard_new_value(const struct attr_data *attr,
 	tmp.flags.isset = 1;
 	tmp.flags.indirect = 0;
 	tmp.val = *newval;
-	discard_value(&tmp);
+	discard_attr_value(&tmp);
 }
 
 /**  Clear (unset) a single attribute.
@@ -415,7 +415,7 @@ clear_single_attr(kdump_ctx_t *ctx, struct attr_data *attr)
 	if (ops && ops->pre_clear)
 		ops->pre_clear(ctx, attr);
 
-	discard_value(attr);
+	discard_attr_value(attr);
 	attr->flags.isset = 0;
 }
 
@@ -485,7 +485,7 @@ dealloc_attr(struct attr_data *attr)
 		}
 	}
 
-	discard_value(attr);
+	discard_attr_value(attr);
 	if (attr->tflags.dyntmpl)
 		free((void*) attr->template);
 
@@ -513,7 +513,7 @@ new_attr(struct attr_dict *dict, struct attr_data *parent,
 		attr = lookup_dir_attr_no_fallback(
 			dict, parent, tmpl->key, strlen(tmpl->key));
 		if (attr) {
-			discard_value(attr);
+			discard_attr_value(attr);
 			if (attr->tflags.dyntmpl)
 				free((void*) attr->template);
 			attr->template = tmpl;
@@ -961,7 +961,7 @@ set_attr(kdump_ctx_t *ctx, struct attr_data *attr,
 	instantiate_path(attr->parent);
 
 	if (attr->template->type != KDUMP_DIRECTORY) {
-		discard_value(attr);
+		discard_attr_value(attr);
 
 		if (flags.indirect)
 			attr->pval = pval;
