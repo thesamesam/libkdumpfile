@@ -341,20 +341,19 @@ alloc_attr(struct attr_dict *dict, struct attr_data *parent,
 	return d;
 }
 
-/**  Discard an attribute's value.
- * @param attr  The attribute whose value is being discarded.
+/**  Discard a value.
+ * @param val    Attribute value.
+ * @param type   Attribute type.
+ * @param flags  Attribute flags.
  *
- * Call this function if the attribute data is no longer needed.
  * If the value is dynamically allocated, free the associated memory.
  * If the value is refcounted, drop the reference.
  */
 static void
-discard_attr_value(struct attr_data *attr)
+discard_value(const kdump_attr_value_t *val, kdump_attr_type_t type,
+	      struct attr_flags flags)
 {
-	if (!attr_isset(attr))
-		return;
-
-	switch (attr->template->type) {
+	switch (type) {
 	case KDUMP_NIL:
 	case KDUMP_DIRECTORY:
 	case KDUMP_NUMBER:
@@ -363,20 +362,34 @@ discard_attr_value(struct attr_data *attr)
 		break;
 
 	case KDUMP_STRING:
-		if (attr->flags.dynstr) {
-			attr->flags.dynstr = 0;
-			free((void*) attr_value(attr)->string);
-		}
+		if (flags.dynstr)
+			free((void *)val->string);
 		break;
 
 	case KDUMP_BITMAP:
-		internal_bmp_decref(attr_value(attr)->bitmap);
+		internal_bmp_decref(val->bitmap);
 		break;
 
 	case KDUMP_BLOB:
-		internal_blob_decref(attr_value(attr)->blob);
+		internal_blob_decref(val->blob);
 		break;
 	}
+}
+
+/**  Discard an attribute's value.
+ * @param attr  The attribute whose value is being discarded.
+ *
+ * Call this function if the attribute data is no longer needed.
+ */
+static void
+discard_attr_value(struct attr_data *attr)
+{
+	if (!attr_isset(attr))
+		return;
+
+	discard_value(attr_value(attr), attr->template->type,
+		      attr->flags);
+	attr->flags.dynstr = 0;
 }
 
 /**  Discard the new value of an attribute.
