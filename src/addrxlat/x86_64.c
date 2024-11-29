@@ -750,6 +750,14 @@ get_linux_pgt_root(struct os_init_data *ctl)
 		return set_error(ctl->ctx, status, err_fmt, "cr3");
 	clear_error(ctl->ctx);
 
+	status = get_symval(ctl->ctx, "swapper_pg_dir", &addr->addr);
+	if (status == ADDRXLAT_OK) {
+		addr->as = ADDRXLAT_KVADDR;
+		return status;
+	} else if (status != ADDRXLAT_ERR_NODATA)
+		return set_error(ctl->ctx, status, err_fmt, "swapper_pg_dir");
+	clear_error(ctl->ctx);
+
 	status = get_symval(ctl->ctx, "init_top_pgt", &addr->addr);
 	if (status == ADDRXLAT_OK) {
 		addr->as = ADDRXLAT_KVADDR;
