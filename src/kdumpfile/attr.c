@@ -1190,8 +1190,10 @@ check_set_attr(kdump_ctx_t *ctx, struct attr_data *attr,
 		return KDUMP_OK;
 	}
 
-	if (valp->type != attr->template->type)
+	if (valp->type != attr->template->type) {
+		discard_value(&valp->val, valp->type, ATTR_DEFAULT);
 		return set_error(ctx, KDUMP_ERR_INVALID, "Type mismatch");
+	}
 
 	if (valp->type == KDUMP_STRING)
 		return set_attr_string(ctx, attr, ATTR_PERSIST,
@@ -1213,6 +1215,7 @@ kdump_set_attr(kdump_ctx_t *ctx, const char *key,
 
 	d = lookup_attr(ctx->dict, key);
 	if (!d) {
+		discard_value(&valp->val, valp->type, ATTR_DEFAULT);
 		ret = set_error(ctx, KDUMP_ERR_NODATA, "No such key");
 		goto out;
 	}
