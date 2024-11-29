@@ -252,7 +252,7 @@ static addrxlat_status
 linux_directmap_by_ver(struct sys_region *rgn, unsigned ver)
 {
 	if (ver >= ADDRXLAT_VER_LINUX(4, 8, 0))
-		return ADDRXLAT_ERR_NOMETH;
+		return ADDRXLAT_ERR_NOTIMPL;
 
 #define LINUX_DIRECTMAP_BY_VER(a, b, c)			\
 	if (ver >= ADDRXLAT_VER_LINUX(a, b, c)) {		\

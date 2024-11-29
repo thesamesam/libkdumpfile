@@ -320,6 +320,7 @@ test_scripts = \
 	xlat-linux-x86_64-5l \
 	xlat-linux-x86_64-6.11-pti-ldt \
 	xlat-linux-x86_64-6.11-pti-user \
+	xlat-linux-x86_64-6.11-pti-user-ver \
 	xlat-xen-ia32 \
 	xlat-xen-ia32-pae \
 	xlat-xen-x86_64-old \

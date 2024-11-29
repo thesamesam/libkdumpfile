@@ -4,7 +4,9 @@
 
 mkdir -p out || exit 99
 
-name=$( basename "$0" )
+if [ -z "$name" ]; then
+    name=$( basename "$0" )
+fi
 resultfile="out/${name}.result"
 expectfile="$srcdir/$name.expect"
 symfile="$srcdir/$name.sym"
