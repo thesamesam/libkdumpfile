@@ -732,22 +732,6 @@ get_linux_pgt_root(struct os_init_data *ctl)
 	if (addr->as != ADDRXLAT_NOADDR)
 		return ADDRXLAT_OK;
 
-	status = get_symval(ctl->ctx, "init_top_pgt", &addr->addr);
-	if (status == ADDRXLAT_OK) {
-		addr->as = ADDRXLAT_KVADDR;
-		return status;
-	} else if (status != ADDRXLAT_ERR_NODATA)
-		return set_error(ctl->ctx, status, err_fmt, "init_top_pgt");
-	clear_error(ctl->ctx);
-
-	status = get_symval(ctl->ctx, "init_level4_pgt", &addr->addr);
-	if (status == ADDRXLAT_OK) {
-		addr->as = ADDRXLAT_KVADDR;
-		return status;
-	} else if (status != ADDRXLAT_ERR_NODATA)
-		return set_error(ctl->ctx, status, err_fmt, "init_level4_pgt");
-	clear_error(ctl->ctx);
-
 	status = get_reg(ctl->ctx, "cr3", &addr->addr);
 	if (status == ADDRXLAT_OK) {
 		addr->addr &= ~PAGE_MASK;
@@ -764,6 +748,22 @@ get_linux_pgt_root(struct os_init_data *ctl)
 		}
 	} else if (status != ADDRXLAT_ERR_NODATA)
 		return set_error(ctl->ctx, status, err_fmt, "cr3");
+	clear_error(ctl->ctx);
+
+	status = get_symval(ctl->ctx, "init_top_pgt", &addr->addr);
+	if (status == ADDRXLAT_OK) {
+		addr->as = ADDRXLAT_KVADDR;
+		return status;
+	} else if (status != ADDRXLAT_ERR_NODATA)
+		return set_error(ctl->ctx, status, err_fmt, "init_top_pgt");
+	clear_error(ctl->ctx);
+
+	status = get_symval(ctl->ctx, "init_level4_pgt", &addr->addr);
+	if (status == ADDRXLAT_OK) {
+		addr->as = ADDRXLAT_KVADDR;
+		return status;
+	} else if (status != ADDRXLAT_ERR_NODATA)
+		return set_error(ctl->ctx, status, err_fmt, "init_level4_pgt");
 	clear_error(ctl->ctx);
 
 	return ADDRXLAT_OK;
