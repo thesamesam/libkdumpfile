@@ -989,7 +989,7 @@ mem_pagemap_revalidate(kdump_ctx_t *ctx, struct attr_data *attr)
 		status = parent_revalidate(ctx, attr);
 	if (status == KDUMP_OK) {
 		ddp->mem_pagemap_override.ops.revalidate = parent_revalidate;
-		attr->flags.invalid = 0;
+		attr->flags.invalid = false;
 	}
 	return status;
 }

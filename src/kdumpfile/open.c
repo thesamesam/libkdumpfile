@@ -193,7 +193,7 @@ num_files_pre_hook(kdump_ctx_t *ctx, struct attr_data *attr,
 			break;
 		}
 		if (i == 0) {
-			fdattr->flags.indirect = 1;
+			fdattr->flags.indirect = true;
 			fdattr->pval = attr_mut_value(gattr(ctx, GKI_file_fd));
 		}
 	}

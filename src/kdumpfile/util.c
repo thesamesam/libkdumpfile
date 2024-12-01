@@ -1158,7 +1158,7 @@ derived_attr_update(kdump_ctx_t *ctx, struct attr_data *attr,
 				   "Writing %hu-byte values not implemented",
 				   def->length);
 	}
-	attr->flags.invalid = 1;
+	attr->flags.invalid = true;
 
  unpin:
 	internal_blob_unpin(blob);

@@ -99,7 +99,7 @@ create_addrxlat_dir(struct attr_dict *dict, enum global_keyidx dirkey)
 	struct attr_data *dir, *attr;
 
 	dir = dgattr(dict, dirkey);
-	dir->flags.isset = 1;
+	dir->flags.isset = true;
 
 	for (tmpl = options; tmpl < &options[ARRAY_SIZE(options)]; ++tmpl) {
 		attr = new_attr(dict, dir, tmpl);

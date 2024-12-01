@@ -455,11 +455,11 @@ struct attr_template {
 /**  Attribute value flags.
  */
 struct attr_flags {
-	uint8_t isset : 1;	/**< Zero if attribute has no value */
-	uint8_t persist : 1;	/**< Persistent (not cleared on re-open) */
-	uint8_t dynstr : 1;	/**< Dynamically allocated string */
-	uint8_t indirect : 1;	/**< Actual value is at @c *pval */
-	uint8_t invalid : 1;	/**< Value needs revalidation */
+	bool isset : 1;		/**< Zero if attribute has no value */
+	bool persist : 1;	/**< Persistent (not cleared on re-open) */
+	bool dynstr : 1;	/**< Dynamically allocated string */
+	bool indirect : 1;	/**< Actual value is at @c *pval */
+	bool invalid : 1;	/**< Value needs revalidation */
 };
 
 /**  Default attribute flags. */
@@ -468,19 +468,19 @@ struct attr_flags {
 
 /**  Persistent attribute flags. */
 #define ATTR_PERSIST	\
-	((struct attr_flags){ .persist = 1 })
+	((struct attr_flags){ .persist = true })
 
 /**  Indirect attribute flags. */
 #define ATTR_INDIRECT	\
-	((struct attr_flags){ .indirect = 1 })
+	((struct attr_flags){ .indirect = true })
 
 /**  Invalid attribute flags. */
 #define ATTR_INVALID	\
-	((struct attr_flags){ .invalid = 1 })
+	((struct attr_flags){ .invalid = true })
 
 /**  Persistent indirect attribute flags. */
 #define ATTR_PERSIST_INDIRECT	\
-	((struct attr_flags){ .persist = 1, .indirect = 1 })
+	((struct attr_flags){ .persist = true, .indirect = true })
 
 
 /**  Attribute template flags.
@@ -1102,9 +1102,9 @@ gattr(const kdump_ctx_t *ctx, enum global_keyidx idx)
 
 /**  Check if an attribute is set.
  * @param data  Pointer to the attribute data.
- * @returns     Non-zero if attribute data is valid.
+ * @returns     @c true if attribute data is valid.
  */
-static inline int
+static inline bool
 attr_isset(const struct attr_data *data)
 {
 	return data->flags.isset;
@@ -1133,7 +1133,7 @@ attr_embed_value(struct attr_data *attr)
 {
 	if (attr->flags.indirect) {
 		attr->val = *attr->pval;
-		attr->flags.indirect = 0;
+		attr->flags.indirect = false;
 	}
 }
 
