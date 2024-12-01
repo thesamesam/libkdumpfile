@@ -1068,7 +1068,7 @@ derived_attr_revalidate(kdump_ctx_t *ctx, struct attr_data *attr,
 			const struct attr_template *tmpl)
 {
 	const struct derived_attr_def *def = attr_to_derived_def(attr);
-	kdump_blob_t *blob;
+	kdump_blob_t *blob = NULL;
 	kdump_status status;
 	void *ptr;
 
@@ -1122,7 +1122,7 @@ derived_attr_update(kdump_ctx_t *ctx, struct attr_data *attr,
 		    const struct attr_template *tmpl)
 {
 	const struct derived_attr_def *def = attr_to_derived_def(attr);
-	kdump_blob_t *blob;
+	kdump_blob_t *blob = NULL;
 	kdump_status status;
 	void *ptr;
 
