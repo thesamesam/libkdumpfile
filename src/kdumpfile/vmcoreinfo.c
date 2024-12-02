@@ -271,10 +271,9 @@ get_raw_locked(kdump_ctx_t *ctx, char **raw)
 		return status;
 
 	len = attr_value(attr)->blob->size;
-	*raw = malloc(len + 1);
+	*raw = ctx_malloc(len + 1, ctx, "raw attribute value");
 	if (!*raw)
-		return set_error(ctx, KDUMP_ERR_SYSTEM,
-				 "Cannot allocate raw attribute value");
+		return KDUMP_ERR_SYSTEM;
 	memcpy(*raw, attr_value(attr)->blob->data, len);
 	(*raw)[len] = 0;
 
