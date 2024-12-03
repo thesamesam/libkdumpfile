@@ -1076,8 +1076,6 @@ attr_dict_decref(struct attr_dict *dict)
 	return 0;
 }
 
-DECLARE_ALIAS(get_attr);
-
 /**  Attribute data by dict and global key index.
  * @param dict  Attribute dictionary.
  * @param idx   Global key index.

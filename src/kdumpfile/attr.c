@@ -1145,8 +1145,6 @@ get_attr_data(kdump_ctx_t *ctx, struct attr_data *attr,
 	return KDUMP_OK;
 }
 
-DEFINE_ALIAS(get_attr);
-
 kdump_status
 kdump_get_attr(kdump_ctx_t *ctx, const char *key, kdump_attr_t *valp)
 {
