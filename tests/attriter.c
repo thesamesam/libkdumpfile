@@ -167,5 +167,6 @@ main(int argc, char **argv)
 			rc = TEST_FAIL;
 		}
 
+	kdump_free(ctx);
 	return rc;
 }
