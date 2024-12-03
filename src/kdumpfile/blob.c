@@ -73,6 +73,8 @@ kdump_blob_new_dup(const void *data, size_t size)
 	return ret;
 }
 
+DEFINE_ALIAS(blob_incref);
+
 unsigned long
 kdump_blob_incref(kdump_blob_t *blob)
 {

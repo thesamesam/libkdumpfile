@@ -105,6 +105,8 @@ kdump_bmp_new(const struct kdump_bmp_ops *ops)
 	return bmp;
 }
 
+DEFINE_ALIAS(bmp_incref);
+
 unsigned long
 kdump_bmp_incref(kdump_bmp_t *bmp)
 {
