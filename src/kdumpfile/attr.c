@@ -1122,6 +1122,29 @@ attr_remove_override(struct attr_data *attr, struct attr_override *override)
 	} while (tmpl->override);
 }
 
+/** Get a copy of the attribute value.
+ * @param ctx   Dump file object.
+ * @param attr  Attribute data.
+ * @param valp  Attribute value (updated on return).
+ * @returns     Error status.
+ */
+static kdump_status
+get_attr_data(kdump_ctx_t *ctx, struct attr_data *attr,
+	      kdump_attr_value_t *valp)
+{
+	kdump_status ret;
+
+	if (!attr_isset(attr))
+		return set_error(ctx, KDUMP_ERR_NODATA, "Key has no value");
+
+	ret = attr_revalidate(ctx, attr);
+	if (ret != KDUMP_OK)
+		return set_error(ctx, ret, "Value cannot be revalidated");
+
+	*valp = *attr_value(attr);
+	return KDUMP_OK;
+}
+
 DEFINE_ALIAS(get_attr);
 
 kdump_status
@@ -1138,19 +1161,8 @@ kdump_get_attr(kdump_ctx_t *ctx, const char *key, kdump_attr_t *valp)
 		ret = set_error(ctx, KDUMP_ERR_NOKEY, "No such key");
 		goto out;
 	}
-	if (!attr_isset(d)) {
-		ret = set_error(ctx, KDUMP_ERR_NODATA, "Key has no value");
-		goto out;
-	}
-	ret = attr_revalidate(ctx, d);
-	if (ret != KDUMP_OK) {
-		ret = set_error(ctx, ret, "Value cannot be revalidated");
-		goto out;
-	}
-
 	valp->type = d->template->type;
-	valp->val = *attr_value(d);
-	ret = KDUMP_OK;
+	ret = get_attr_data(ctx, d, &valp->val);
 
  out:
 	rwlock_unlock(&ctx->shared->lock);
@@ -1310,22 +1322,8 @@ kdump_attr_ref_get(kdump_ctx_t *ctx, const kdump_attr_ref_t *ref,
 
 	clear_error(ctx);
 	rwlock_rdlock(&ctx->shared->lock);
-
-	if (!attr_isset(d)) {
-		ret = set_error(ctx, KDUMP_ERR_NODATA, "Key has no value");
-		goto out;
-	}
-	ret = attr_revalidate(ctx, d);
-	if (ret != KDUMP_OK) {
-		ret = set_error(ctx, ret, "Value cannot be revalidated");
-		goto out;
-	}
-
 	valp->type = d->template->type;
-	valp->val = *attr_value(d);
-	ret = KDUMP_OK;
-
- out:
+	ret = get_attr_data(ctx, d, &valp->val);
 	rwlock_unlock(&ctx->shared->lock);
 	return ret;
 }
