@@ -83,6 +83,7 @@ main(int argc, char **argv)
 			rc = TEST_FAIL;
 		} else
 			printf("%s is a directory\n", ATTRDIR);
+		kdump_attr_discard(ctx, &attr);
 		kdump_attr_unref(ctx, &subref);
 	} else {
 		fprintf(stderr, "kdump_sub_attr_ref failed for %s: %s\n",
@@ -107,6 +108,7 @@ main(int argc, char **argv)
 			rc = TEST_FAIL;
 		} else
 			printf("%s = %s\n", ATTRPATH, attr.val.string);
+		kdump_attr_discard(ctx, &attr);
 		kdump_attr_unref(ctx, &subref);
 	} else {
 		fprintf(stderr, "kdump_sub_attr_ref failed for %s: %s\n",

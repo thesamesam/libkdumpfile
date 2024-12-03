@@ -137,6 +137,7 @@ main(int argc, char **argv)
 				rc = TEST_FAIL;
 			} else
 				printf("%s = %s\n", it.key, attr.val.string);
+			kdump_attr_discard(ctx, &attr);
 		}
 
 		res = kdump_attr_iter_next(ctx, &it);

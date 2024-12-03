@@ -732,10 +732,18 @@ kdump_clear_attr(kdump_ctx_t *ctx, const char *key)
  * @param valp Value (filled on successful return).
  * @returns    Error status.
  *
- * Note that the caller does not hold a reference to the attribute, so
- * it is not generally safe to use this function in a multi-threaded
- * program, or across another library call which modifies the attribute
- * (explicitly or implicitly).
+ * This function is useful only when the caller can fully control the
+ * lifetime of the returned attribute value. In that case, the value
+ * is valid only as long as no changes are made to the containing dump
+ * file object.
+ *
+ * Note that attribute data (or the attribute hierarchy itself) may
+ * change as a side effect of another operation. Merely reading dump
+ * data or attributes will never invalidate the attribute value, i.e.
+ * it is safe to dereference pointers. However, the returned value may
+ * become stale, for example cache statistics.
+ *
+ * A more robust API is provided by @ref kdump_attr_ref_get.
  */
 kdump_status kdump_get_attr(kdump_ctx_t *ctx, const char *key,
 			    kdump_attr_t *valp);
@@ -750,8 +758,8 @@ kdump_status kdump_get_attr(kdump_ctx_t *ctx, const char *key,
  * If the attribute is of a different type, this function returns
  * KDUMP_ERR_INVALID and does not change @p valp.
  *
- * Note that the caller does not hold a reference to the attribute. See
- * the description of @ref kdump_get_attr for limitations.
+ * The caller must ensure the lifetime of the returned data is valid. See
+ * the description of @ref kdump_get_attr for more details.
  */
 kdump_status kdump_get_typed_attr(kdump_ctx_t *ctx, const char *key,
 				  kdump_attr_type_t type,
@@ -792,8 +800,8 @@ kdump_get_address_attr(kdump_ctx_t *ctx, const char *key, kdump_addr_t *addr)
  * @param str[out]  Filled with the attribute value on successful return.
  * @returns         Error status.
  *
- * Note that the caller does not hold a reference to the string. See
- * the description of @ref kdump_get_attr for limitations.
+ * The caller must ensure the lifetime of the returned data is valid. See
+ * the description of @ref kdump_get_attr for more details.
  */
 static inline kdump_status
 kdump_get_string_attr(kdump_ctx_t *ctx, const char *key, const char **str)
@@ -846,13 +854,41 @@ int kdump_attr_ref_isset(kdump_attr_ref_t *ref);
 /**  Get attribute data by reference.
  * @param      ctx   Dump file object.
  * @param[in]  ref   Attribute reference.
- * @param[out] valp  Attribute value (filled on successful return).
+ * @param[out] valp  Attribute value (filled on return).
+ * @returns          Error status.
  *
- * This works just like @ref kdump_get_attr, except that the attribute
- * is denoted by a reference rather than by its key path.
+ * This works similarly to @ref kdump_get_attr, except:
+ * - the attribute is denoted by a reference rather than by path,
+ * - the returned data stays valid even if changes are made to the dump
+ *   object.
+ *
+ * The returned value may be a dynamically allocated copy of the attribute
+ * value and/or it may hold an extra reference to the underlying objects.
+ * You should free up these resources with @ref kdump_attr_discard when
+ * the data is no longer needed.
+ *
+ * If the function returns an error, it is not necessary to discard the
+ * result. However, the type of @p valp is set to @c KDUMP_NIL, so it is
+ * always safe to call @ref kdump_attr_discard on the result. The goal of
+ * this feature is to simplify code flow in callers.
  */
 kdump_status kdump_attr_ref_get(kdump_ctx_t *ctx, const kdump_attr_ref_t *ref,
 				kdump_attr_t *valp);
+
+/** Discard attribute data value.
+ * @param ctx   Dump file object.
+ * @param attr  Attribute data.
+ *
+ * Perform any actions necessary to release resources by the attribute data.
+ * This function may decrement object references, free dynamically allocated
+ * memory, or even do nothing, depending on the data type.
+ *
+ * Call this function when the data returned by @ref kdump_attr_ref_get is no
+ * longer needed. Do *NOT* call this function on attribute data returned by
+ * @ref kdump_get_attr.
+ */
+void
+kdump_attr_discard(kdump_ctx_t *ctx, kdump_attr_t *attr);
 
 /**  Set attribute data by reference.
  * @param      ctx   Dump file object.

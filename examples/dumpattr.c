@@ -134,6 +134,7 @@ show_attr(kdump_ctx_t *ctx, kdump_attr_ref_t *ref, int indent, const char *key)
 		printf("<unknown>\n");
 	}
 
+	kdump_attr_discard(ctx, &attr);
 	return 0;
 }
 

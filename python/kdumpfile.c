@@ -199,26 +199,37 @@ static PyObject *kdumpfile_read (PyObject *_self, PyObject *args, PyObject *kw)
 static PyObject *
 attr_new(kdumpfile_object *kdumpfile, kdump_attr_ref_t *ref, kdump_attr_t *attr)
 {
+	PyObject *obj = NULL;
+
 	if (attr->type != KDUMP_DIRECTORY)
 		kdump_attr_unref(kdumpfile->ctx, ref);
 
 	switch (attr->type) {
 		case KDUMP_NUMBER:
-			return PyLong_FromUnsignedLong(attr->val.number);
+			obj = PyLong_FromUnsignedLong(attr->val.number);
+			break;
 		case KDUMP_ADDRESS:
-			return PyLong_FromUnsignedLong(attr->val.address);
+			obj = PyLong_FromUnsignedLong(attr->val.address);
+			break;
 		case KDUMP_STRING:
-			return PyString_FromString(attr->val.string);
+			obj = PyString_FromString(attr->val.string);
+			break;
 		case KDUMP_DIRECTORY:
-			return attr_dir_new(kdumpfile, ref);
+			obj= attr_dir_new(kdumpfile, ref);
+			break;
 		case KDUMP_BITMAP:
-			return bmp_new(attr->val.bitmap);
+			obj = bmp_new(attr->val.bitmap);
+			break;
 		case KDUMP_BLOB:
-			return blob_new(attr->val.blob);
+			obj = blob_new(attr->val.blob);
+			break;
 		default:
 			PyErr_SetString(PyExc_RuntimeError, "Unhandled attr type");
-			return NULL;
 	}
+
+	kdump_attr_discard(kdumpfile->ctx, attr);
+
+	return obj;
 }
 
 PyDoc_STRVAR(get_addrxlat_ctx__doc__,
@@ -1604,7 +1615,7 @@ attr_iteritem_next(PyObject *_self)
 
 	result = PyTuple_New(2);
 	if (result == NULL)
-		return NULL;
+		goto err_attr;
 	key = PyString_FromString(self->iter.key);
 	if (!key)
 		goto err_result;
@@ -1612,6 +1623,7 @@ attr_iteritem_next(PyObject *_self)
 	if (!value)
 		goto err_key;
 
+	kdump_attr_discard(self->kdumpfile->ctx, &attr);
 	PyTuple_SET_ITEM(result, 0, key);
 	PyTuple_SET_ITEM(result, 1, value);
 	return attr_iter_advance(self, result);
@@ -1620,6 +1632,8 @@ attr_iteritem_next(PyObject *_self)
 	Py_DECREF(key);
  err_result:
 	Py_DECREF(result);
+ err_attr:
+	kdump_attr_discard(self->kdumpfile->ctx, &attr);
 	return NULL;
 }
 

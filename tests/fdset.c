@@ -97,6 +97,7 @@ check_unset_file(kdump_ctx_t *ctx, kdump_attr_ref_t *fileset, const char *key,
 				key, kdump_get_err(ctx));
 			ret = TEST_FAIL;
 		}
+		kdump_attr_discard(ctx, &attr);
 		kdump_attr_unref(ctx, &tmpref);
 	}
 
@@ -156,6 +157,7 @@ check_fileset_zero(kdump_ctx_t *ctx, kdump_attr_ref_t *fileset, int fd)
 			"file.set.0.fd", attr.val.number, fd);
 		ret = TEST_FAIL;
 	}
+	kdump_attr_discard(ctx, &attr);
 	kdump_attr_unref(ctx, &tmpref);
 
 	return ret;
@@ -192,6 +194,7 @@ check_filename(kdump_ctx_t *ctx, kdump_attr_ref_t *fileset,
 			KDUMP_ATTR_FILE_SET, subkey, attr.val.string, name);
 		ret = TEST_FAIL;
 	}
+	kdump_attr_discard(ctx, &attr);
 	kdump_attr_unref(ctx, &tmpref);
 
 	return ret;
@@ -253,6 +256,7 @@ main(int argc, char **argv)
 			attr.val.number);
 		ret = TEST_FAIL;
 	}
+	kdump_attr_discard(ctx, &attr);
 
 	/* Check that file.set.0.fd does not exist. */
 	rc = check_not_exist(ctx, &fileset, "0.fd");

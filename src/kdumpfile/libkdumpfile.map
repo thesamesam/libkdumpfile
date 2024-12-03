@@ -42,6 +42,7 @@ LIBKDUMPFILE_0 {
     kdump_attr_ref_type;
     kdump_attr_ref_isset;
     kdump_attr_ref_get;
+    kdump_attr_discard;
     kdump_attr_ref_set;
     kdump_set_sub_attr;
     kdump_attr_iter_start;

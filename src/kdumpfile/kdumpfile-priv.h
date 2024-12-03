@@ -482,6 +482,9 @@ struct attr_flags {
 #define ATTR_PERSIST_INDIRECT	\
 	((struct attr_flags){ .persist = true, .indirect = true })
 
+/** Dynamically allocated attribute flags. */
+#define ATTR_DYNSTR	\
+	((struct attr_flags){ .dynstr = true })
 
 /**  Attribute template flags.
  */
