@@ -1,5 +1,7 @@
 next
 ----
+  * Incompatible API changes:
+    - kdump_get_typed_attr(): parameters and type mismatch behaviour
   * Support flattened ELF dump files.
   * Support partially rearranged makedumpfile split files.
   * Parse QEMU CPU state ELF notes.

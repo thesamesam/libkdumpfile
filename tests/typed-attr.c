@@ -34,9 +34,14 @@
 #define ATTR_SYSNAME	"linux.uts.sysname"
 #define ATTR_PHYS_BASE	"linux.phys_base"
 
+#define GOOD_NUMBER	0x600d
+
+static const char dummy_string[] = "dummy";
+
 int main(int argc, char **argv)
 {
 	kdump_ctx_t *ctx;
+	kdump_attr_value_t value;
 	kdump_attr_t attr;
 	kdump_num_t num;
 	kdump_addr_t addr;
@@ -52,18 +57,19 @@ int main(int argc, char **argv)
 
 	puts("# Test kdump_get_typed_attr:");
 
-	attr.type = KDUMP_NUMBER;
-	status = kdump_get_typed_attr(ctx, ATTR_CACHE_SIZE, &attr);
+	status = kdump_get_typed_attr(ctx, ATTR_CACHE_SIZE, KDUMP_NUMBER,
+				      &value);
 	if (status != KDUMP_OK) {
 		fprintf(stderr, "Cannot read %s: %s\n",
 			ATTR_CACHE_SIZE, kdump_get_err(ctx));
 		rc = TEST_FAIL;
 	} else
 		printf("%s: %lld\n",
-		       ATTR_CACHE_SIZE, (long long)attr.val.number);
+		       ATTR_CACHE_SIZE, (long long)value.number);
 
-	attr.type = KDUMP_STRING;
-	status = kdump_get_typed_attr(ctx, ATTR_CACHE_SIZE, &attr);
+	value.string = dummy_string;
+	status = kdump_get_typed_attr(ctx, ATTR_CACHE_SIZE, KDUMP_STRING,
+				      &value);
 	if (status == KDUMP_OK) {
 		fprintf(stderr, "%s can be read as a string??\n",
 			ATTR_CACHE_SIZE);
@@ -71,6 +77,10 @@ int main(int argc, char **argv)
 	} else if (status != KDUMP_ERR_INVALID) {
 		fprintf(stderr, "Cannot read %s: %s\n",
 			ATTR_CACHE_SIZE, kdump_get_err(ctx));
+		rc = TEST_FAIL;
+	} else if (value.string != dummy_string) {
+		fprintf(stderr, "Value changed after %s type mismatch\n",
+			ATTR_CACHE_SIZE);
 		rc = TEST_FAIL;
 	} else
 		printf("%s as a string: %s\n",
@@ -85,17 +95,18 @@ int main(int argc, char **argv)
 		return TEST_FAIL;
 	}
 
-	attr.type = KDUMP_STRING;
-	status = kdump_get_typed_attr(ctx, ATTR_SYSNAME, &attr);
+	status = kdump_get_typed_attr(ctx, ATTR_SYSNAME, KDUMP_STRING,
+				      &value);
 	if (status != KDUMP_OK) {
 		fprintf(stderr, "Cannot read %s: %s\n",
 			ATTR_SYSNAME, kdump_get_err(ctx));
 		rc = TEST_FAIL;
 	} else
-		printf("%s: %s\n", ATTR_SYSNAME, attr.val.string);
+		printf("%s: %s\n", ATTR_SYSNAME, value.string);
 
-	attr.type = KDUMP_NUMBER;
-	status = kdump_get_typed_attr(ctx, ATTR_SYSNAME, &attr);
+	value.number = GOOD_NUMBER;
+	status = kdump_get_typed_attr(ctx, ATTR_SYSNAME, KDUMP_NUMBER,
+				      &value);
 	if (status == KDUMP_OK) {
 		fprintf(stderr, "%s can be read as a number??\n",
 			ATTR_SYSNAME);
@@ -103,6 +114,10 @@ int main(int argc, char **argv)
 	} else if (status != KDUMP_ERR_INVALID) {
 		fprintf(stderr, "Cannot read %s: %s\n",
 			ATTR_SYSNAME, kdump_get_err(ctx));
+		rc = TEST_FAIL;
+	} else if (value.number != GOOD_NUMBER) {
+		fprintf(stderr, "Value changed after %s type mismatch\n",
+			ATTR_SYSNAME);
 		rc = TEST_FAIL;
 	} else
 		printf("%s as a number: %s\n",
@@ -120,6 +135,7 @@ int main(int argc, char **argv)
 		       ATTR_CACHE_SIZE, (long long)num);
 
 
+	str = dummy_string;
 	status = kdump_get_string_attr(ctx, ATTR_CACHE_SIZE, &str);
 	if (status == KDUMP_OK) {
 		fprintf(stderr, "%s can be read as a string??\n",
@@ -128,6 +144,10 @@ int main(int argc, char **argv)
 	} else if (status != KDUMP_ERR_INVALID) {
 		fprintf(stderr, "Cannot read %s: %s\n",
 			ATTR_CACHE_SIZE, kdump_get_err(ctx));
+		rc = TEST_FAIL;
+	} else if (str != dummy_string) {
+		fprintf(stderr, "Value changed after %s type mismatch\n",
+			ATTR_CACHE_SIZE);
 		rc = TEST_FAIL;
 	} else
 		printf("%s as a string: %s\n",

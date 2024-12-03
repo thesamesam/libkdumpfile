@@ -76,21 +76,21 @@ static int
 check(kdump_ctx_t *ctx)
 {
 	struct x86_64_elf_prstatus *prstatus;
+	kdump_attr_value_t value;
 	kdump_status status;
 	kdump_blob_t *blob;
-	kdump_attr_t attr;
 	kdump_num_t rax;
 	uint64_t pr_rax;
 	size_t size;
 
-	attr.type = KDUMP_BLOB;
-	status = kdump_get_typed_attr(ctx, "cpu.0.PRSTATUS", &attr);
+	status = kdump_get_typed_attr(ctx, "cpu.0.PRSTATUS", KDUMP_BLOB,
+				      &value);
 	if (status != KDUMP_OK) {
 		fprintf(stderr, "Cannot get PRSTATUS attribute: %s\n",
 			kdump_get_err(ctx));
 		return TEST_FAIL;
 	}
-	blob = attr.val.blob;
+	blob = value.blob;
 
 	status = kdump_get_number_attr(ctx, ATTR_KEY_RAX, &rax);
 	if (status != KDUMP_OK) {

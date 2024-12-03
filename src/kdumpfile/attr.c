@@ -1170,20 +1170,30 @@ kdump_get_attr(kdump_ctx_t *ctx, const char *key, kdump_attr_t *valp)
 }
 
 kdump_status
-kdump_get_typed_attr(kdump_ctx_t *ctx, const char *key, kdump_attr_t *valp)
+kdump_get_typed_attr(kdump_ctx_t *ctx, const char *key, kdump_attr_type_t type,
+		     kdump_attr_value_t *valp)
 {
-	kdump_attr_type_t type = valp->type;
+	struct attr_data *d;
 	kdump_status ret;
 
-	ret = internal_get_attr(ctx, key, valp);
-	if (ret != KDUMP_OK)
-		return ret;
+	clear_error(ctx);
+	rwlock_rdlock(&ctx->shared->lock);
 
-	if (valp->type != type)
-		return set_error(ctx, KDUMP_ERR_INVALID,
+	d = lookup_attr(ctx->dict, key);
+	if (!d) {
+		ret = set_error(ctx, KDUMP_ERR_NOKEY, "No such key");
+		goto out;
+	}
+	if (d->template->type != type) {
+		ret = set_error(ctx, KDUMP_ERR_INVALID,
 				 "Attribute type mismatch");
+		goto out;
+	}
+	ret = get_attr_data(ctx, d, valp);
 
-	return KDUMP_OK;
+ out:
+	rwlock_unlock(&ctx->shared->lock);
+	return ret;
 }
 
 /**  Set an attribute value with type check.

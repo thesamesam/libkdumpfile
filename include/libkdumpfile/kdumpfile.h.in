@@ -740,21 +740,22 @@ kdump_clear_attr(kdump_ctx_t *ctx, const char *key)
 kdump_status kdump_get_attr(kdump_ctx_t *ctx, const char *key,
 			    kdump_attr_t *valp);
 
-/**  Get a dump file attribute, checking its type.
+/**  Get a dump file attribute with a given type.
  * @param ctx  Dump file object.
  * @param key  Attribute key.
+ * @param type Expected attribute type.
  * @param valp Value (updated on return).
  * @returns    Error status.
  *
- * The @c type field in @c valp must be set to the expected attribute
- * type by the caller. It is an error if the attribute is of a different
- * type, but @c valp is updated to its value anyway.
+ * If the attribute is of a different type, this function returns
+ * KDUMP_ERR_INVALID and does not change @p valp.
  *
  * Note that the caller does not hold a reference to the attribute. See
  * the description of @ref kdump_get_attr for limitations.
  */
 kdump_status kdump_get_typed_attr(kdump_ctx_t *ctx, const char *key,
-				  kdump_attr_t *valp);
+				  kdump_attr_type_t type,
+				  kdump_attr_value_t *valp);
 
 /** Get a numeric attribute.
  *
@@ -766,14 +767,8 @@ kdump_status kdump_get_typed_attr(kdump_ctx_t *ctx, const char *key,
 static inline kdump_status
 kdump_get_number_attr(kdump_ctx_t *ctx, const char *key, kdump_num_t *num)
 {
-	kdump_attr_t attr;
-	kdump_status ret;
-
-	attr.type = KDUMP_NUMBER;
-	ret = kdump_get_typed_attr(ctx, key, &attr);
-	if (ret == KDUMP_OK)
-		*num = attr.val.number;
-	return ret;
+	return kdump_get_typed_attr(ctx, key, KDUMP_NUMBER,
+				    (kdump_attr_value_t *)num);
 }
 
 /** Get an address attribute.
@@ -786,14 +781,8 @@ kdump_get_number_attr(kdump_ctx_t *ctx, const char *key, kdump_num_t *num)
 static inline kdump_status
 kdump_get_address_attr(kdump_ctx_t *ctx, const char *key, kdump_addr_t *addr)
 {
-	kdump_attr_t attr;
-	kdump_status ret;
-
-	attr.type = KDUMP_ADDRESS;
-	ret = kdump_get_typed_attr(ctx, key, &attr);
-	if (ret == KDUMP_OK)
-		*addr = attr.val.address;
-	return ret;
+	return kdump_get_typed_attr(ctx, key, KDUMP_ADDRESS,
+				    (kdump_attr_value_t *)addr);
 }
 
 /** Get a string attribute.
@@ -809,14 +798,8 @@ kdump_get_address_attr(kdump_ctx_t *ctx, const char *key, kdump_addr_t *addr)
 static inline kdump_status
 kdump_get_string_attr(kdump_ctx_t *ctx, const char *key, const char **str)
 {
-	kdump_attr_t attr;
-	kdump_status ret;
-
-	attr.type = KDUMP_STRING;
-	ret = kdump_get_typed_attr(ctx, key, &attr);
-	if (ret == KDUMP_OK)
-		*str = attr.val.string;
-	return ret;
+	return kdump_get_typed_attr(ctx, key, KDUMP_STRING,
+				    (kdump_attr_value_t *)str);
 }
 
 /** Get a reference to an attribute
