@@ -24,6 +24,10 @@ m4_define([pkg_micro_version], [4])
 m4_define([pkg_version],
           [pkg_major_version.pkg_minor_version.pkg_micro_version])
 
+dnl FIXME: kdumpid has a different versioning scheme
+m4_define([kdumpid_major_version], [1])
+m4_define([kdumpid_minor_version], [7])
+
 AC_INIT([libkdumpfile],[pkg_version],[petr@tesarici.cz])
 
 AC_CONFIG_SRCDIR([src/kdumpfile/diskdump.c])
@@ -104,6 +108,11 @@ AS_IF([test "x$enable_debug" = xyes],
 dnl check for Python
 kdump_PYTHON([2.7.0])
 
+dnl check whether to build optional tools
+AC_SUBST(KDUMPID_VER_MAJOR, kdumpid_major_version)
+AC_SUBST(KDUMPID_VER_MINOR, kdumpid_minor_version)
+KDUMP_TOOL_KDUMPID
+
 AC_CONFIG_FILES([
 	Makefile
 	examples/Makefile
@@ -114,6 +123,8 @@ AC_CONFIG_FILES([
 	src/kdumpfile/Makefile
 	python/Makefile
 	tests/Makefile
+	tools/Makefile
+	tools/kdumpid/Makefile
 	libaddrxlat.pc
 	libkdumpfile.pc
 	include/libkdumpfile/kdumpfile.h

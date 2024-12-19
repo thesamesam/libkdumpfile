@@ -8,6 +8,7 @@ next
   * Parse QEMU CPU state ELF notes.
   * Use kernel page tables when initializing X86-64 Linux with PTI from
     CR3 register value.
+  * Include the kdumpid utility.
   * Fix direct mapping if LDT PTI remapping is used in Linux on X86-64.
   * Minor cache improvements and a NULL-pointer dereference fix.
   * Fix test suite for 32-bit architectures.

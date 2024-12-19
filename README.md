@@ -19,6 +19,12 @@ To compile this package, you'll need the following:
 * [GCC](http://gcc.gnu.org/). The source uses a few construct specific
   to GCC (such as variable attributes). Porting should be easy, though.
 
+If you want to build kdumpid, you'll also need:
+
+* [BFD](http://www.gnu.org/software/binutils/). Any version with
+  disassemblers for x86, ppc and s390 will do. This usually comes with
+  the distro packaged as binutils-devel or similar.
+
 To create documentation files, you'll need:
 
 * [Doxygen](http://www.doxygen.org/). Usually packaged as doxygen.

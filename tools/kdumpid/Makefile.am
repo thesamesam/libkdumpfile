@@ -1,7 +1,7 @@
 ## Process this file with automake to create Makefile.in
 ## Configure input file for libkdumpfile.
 ##
-## Copyright (C) 2014 Petr Tesarik <ptesarik@suse.cz>
+## Copyright (C) 2024 Petr Tesarik <ptesarik@suse.com>
 ##
 ## This file is part of libkdumpfile.
 ##
@@ -19,27 +19,27 @@
 ## along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ##
 
-ACLOCAL_AMFLAGS = -I m4
+AM_CPPFLAGS = -I$(top_builddir)/include \
+	-DVER_MAJOR=$(KDUMPID_VER_MAJOR) \
+	-DVER_MINOR=$(KDUMPID_VER_MINOR)
 
-SUBDIRS = include src tests tools examples
-if BUILD_PYTHON_EXT
-SUBDIRS += python
-endif
+LIBS = \
+	$(top_builddir)/src/kdumpfile/libkdumpfile.la \
+	$(DIS_ASM_LIBS)
 
-dist_noinst_DATA = \
-	COPYING.GPLv2 \
-	COPYING.GPLv3 \
-	COPYING.LGPLv3 \
-	Doxyfile \
-	NEWS \
-	README.md \
-	attributes.md \
-	objects.md \
-	threads.md
+kdumpid_SOURCES = \
+	main.c \
+	util.c \
+	search.c \
+	ppc.c \
+	ppc64.c \
+	s390.c \
+	x86.c
 
-pkgconfigdir=$(libdir)/pkgconfig
-pkgconfig_DATA = \
-	libaddrxlat.pc	\
-	libkdumpfile.pc
+noinst_HEADERS = \
+	kdumpid.h \
+	endian.h
 
-@DX_RULES@
+bin_PROGRAMS = kdumpid
+
+dist_man_MANS = kdumpid.1
