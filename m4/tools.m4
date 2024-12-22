@@ -41,14 +41,14 @@ AS_IF([$EGREP "@<:@^A-Za-z0-9_@:>@($2)" conftest.linkerr >&AS_MESSAGE_LOG_FD],
   [AC_MSG_RESULT(no)])dnl
 ])# KDUMP_DIS_ASM_CHECK_UNDEF
 
-AC_DEFUN([KDUMP_DIS_ASM_LIBS],[[dnl determine disassembler libraries
+AC_DEFUN([KDUMP_DIS_ASM_LIBS],[dnl determine disassembler libraries
 DIS_ASM_LIBS=-lopcodes
 AC_LANG_CONFTEST([AC_LANG_PROGRAM(
   [#include <dis-asm.h>],
   [disassembler(bfd_arch_i386, FALSE, bfd_mach_x86_64, NULL);])])
 dnl ignore undefined symbols from missing linker dependencies
 AC_MSG_CHECKING([for disassembler in $DIS_ASM_LIBS])
-KDUMP_TRY_LINK_UNDEF($DIS_ASM_LIBS, [[-Wl,--require-defined=disassembler]])
+KDUMP_TRY_LINK_UNDEF($DIS_ASM_LIBS, [-Wl,--require-defined=disassembler])
 AC_MSG_RESULT($kdump_res)
 AS_IF([test yes = "$kdump_res"], [dnl
   KDUMP_DIS_ASM_CHECK_UNDEF(-lbfd, bfd_)
@@ -61,8 +61,8 @@ AS_IF([test yes = "$kdump_res"], [dnl
     [KDUMP_REPORT_LINKERR]
     [AC_MSG_FAILURE([Tried everything, still cannot link disassembler.])])
   AC_SUBST(DIS_ASM_LIBS)
-], false)dnl
-]])# KDUMP_DIS_ASM_LIBS
+])dnl
+])# KDUMP_DIS_ASM_LIBS
 
 AC_DEFUN([KDUMP_DIS_ASM],[dnl determine disassembler options
 AC_CHECK_HEADERS(dis-asm.h, [],
@@ -90,8 +90,9 @@ AC_ARG_ENABLE(kdumpid,
     [do not build kdumpid])],
   [],
   [enable_kdumpid=yes])
-AS_IF([test no != "$enable_kdumpid"],
-  [AS_IF(KDUMP_DIS_ASM, [],
+AS_IF([test no != "$enable_kdumpid"], [dnl
+  KDUMP_DIS_ASM
+  AS_IF([test yes != "$kdump_res"],
     [AC_MSG_FAILURE(
       [disassembler test failed (--disable-kdumpid to disable)])]
     )])
