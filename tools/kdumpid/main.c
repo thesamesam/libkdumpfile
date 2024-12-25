@@ -35,13 +35,13 @@ print_xen_info(kdump_ctx_t *ctx)
 	fputs("Xen: ", stdout);
 	status = kdump_get_attr(ctx, "xen.version.major", &attr);
 	if (status == KDUMP_OK)
-		printf("%ld.", attr.val.number);
+		printf("%" KDUMP_PRIuNUM ".", attr.val.number);
 	else
 		fputs("?.", stdout);
 
 	status = kdump_get_attr(ctx, "xen.version.minor", &attr);
 	if (status == KDUMP_OK)
-		printf("%ld", attr.val.number);
+		printf("%" KDUMP_PRIuNUM, attr.val.number);
 	else
 		fputs("?", stdout);
 
