@@ -37,8 +37,7 @@ kdumpid_SOURCES = \
 	x86.c
 
 noinst_HEADERS = \
-	kdumpid.h \
-	endian.h
+	kdumpid.h
 
 bin_PROGRAMS = kdumpid
 
