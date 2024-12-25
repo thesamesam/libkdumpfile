@@ -1,5 +1,5 @@
-next
-----
+0.5.5
+-----
   * Incompatible API changes:
     - kdump_get_typed_attr(): parameters and type mismatch behaviour
     - kdump_attr_ref_get(): result must be discarded
