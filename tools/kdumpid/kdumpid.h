@@ -21,7 +21,7 @@ struct dump_desc {
 
 	void *page;		/* page data buffer */
 	kdump_num_t page_size;	/* target page size */
-	unsigned long max_pfn;	/* max PFN for read_page */
+	kdump_num_t max_pfn;	/* max PFN for read_page */
 
 	const char *format;	/* format name */
 
